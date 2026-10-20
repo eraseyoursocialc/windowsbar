@@ -46,6 +46,7 @@ namespace WindowsBar
         private bool _overShareZone;
         private DateTime _lastInside = DateTime.Now;
         private int _tick;
+        private readonly bool _pinnedOpen;
 
         private string? _toastText;
         private string? _toastGlyph;
@@ -53,10 +54,12 @@ namespace WindowsBar
         private readonly ScaleTransform[] _bars = new ScaleTransform[4];
         private bool _barsRunning;
 
-        public NotchWindow(Settings settings)
+        /// <param name="openOnStart">Open the island and keep it open (used for screenshots).</param>
+        public NotchWindow(Settings settings, bool openOnStart = false)
         {
             InitializeComponent();
             _settings = settings;
+            _pinnedOpen = openOnStart;
             _media = new MediaService(Dispatcher);
             _camera = new CameraService(Dispatcher);
 
@@ -111,6 +114,8 @@ namespace WindowsBar
             OnClockTick();
             RefreshCompact();
             _clock.Start();
+            if (_pinnedOpen)
+                Expand();
 
             await _media.InitAsync();
         }
@@ -170,6 +175,7 @@ namespace WindowsBar
         }
 
         private bool IsBusy() =>
+            _pinnedOpen ||
             Shelf.IsDraggingOut ||
             GearButton.ContextMenu.IsOpen ||
             (IsActive && Island.IsKeyboardFocusWithin); // typing a note or task

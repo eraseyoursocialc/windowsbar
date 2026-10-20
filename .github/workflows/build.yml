@@ -29,6 +29,49 @@ jobs:
           -p:EnableCompressionInSingleFile=true
           -o publish
 
+      # Launch the real exe, make sure it stays up without errors, and take screenshots.
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          function Snap($name) {
+            $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+            New-Item -ItemType Directory -Force screenshots | Out-Null
+            $bmp.Save("screenshots/$name.png")
+            $g.Dispose(); $bmp.Dispose()
+          }
+          function Check($p, $label) {
+            $log = "$env:APPDATA\WindowsBar\log.txt"
+            if (Test-Path $log) { Write-Host "--- log.txt ---"; Get-Content $log }
+            if ($p.HasExited) { throw "WindowsBar exited during '$label' with code $($p.ExitCode)" }
+            if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'Could not start|Unhandled|Fatal' -Quiet)) {
+              throw "WindowsBar logged an error during '$label'"
+            }
+          }
+
+          $p = Start-Process publish/WindowsBar.exe -PassThru
+          Start-Sleep -Seconds 15
+          Snap "collapsed"
+          Check $p "collapsed"
+          Stop-Process -Id $p.Id -Force
+          Start-Sleep -Seconds 2
+
+          $p = Start-Process publish/WindowsBar.exe -ArgumentList '--open' -PassThru
+          Start-Sleep -Seconds 15
+          Snap "expanded"
+          Check $p "expanded"
+          Stop-Process -Id $p.Id -Force
+          Write-Host "WindowsBar started and stayed up."
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
+
       - uses: actions/upload-artifact@v4
         with:
           name: WindowsBar-win-x64

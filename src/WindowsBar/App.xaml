@@ -57,7 +57,7 @@
             <Setter Property="FontFamily" Value="{StaticResource TextFont}" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Width" Value="Double.NaN" />
+            <Setter Property="Width" Value="Auto" />
             <Setter Property="Height" Value="26" />
             <Setter Property="Padding" Value="10,0" />
             <Setter Property="Tag" Value="13" />
