@@ -15,6 +15,7 @@ function createPreviewBridge() {
     settings: {
       hideInFullscreen: true,
       openDelay: 1000,
+      transparency: 0,
       widgets: { media: true, mirror: true, calendar: true, notes: true, timers: true, tasks: true },
     },
     notes: ['', '', ''],

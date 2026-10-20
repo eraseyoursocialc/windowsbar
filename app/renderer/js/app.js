@@ -463,6 +463,19 @@ function setupSettings() {
   });
   delay.addEventListener('change', () => saveSettings({ openDelay: +delay.value }));
 
+  // Transparency updates the bar live while you drag, and is saved when you let go.
+  const glass = $('#set-glass');
+  const glassLabel = $('#set-glass-label');
+  const showGlass = () => {
+    glass.style.setProperty('--p', `${(glass.value / glass.max) * 100}%`);
+    glassLabel.textContent = `${glass.value}%`;
+    applyTransparency(+glass.value);
+  };
+  glass.value = settings.transparency ?? 0;
+  showGlass();
+  glass.addEventListener('input', showGlass);
+  glass.addEventListener('change', () => saveSettings({ transparency: +glass.value }));
+
   for (const chip of document.querySelectorAll('.wchip[data-widget]')) {
     chip.classList.toggle('on', settings.widgets[chip.dataset.widget] !== false);
     chip.addEventListener('click', () => {
@@ -481,6 +494,10 @@ function setupSettings() {
     $('#set-shortcut').textContent = info.shortcut;
     $('#set-version').textContent = `WindowsBar ${info.version}`;
   });
+}
+
+function applyTransparency(percent) {
+  document.documentElement.style.setProperty('--glass', String(1 - percent / 100));
 }
 
 function saveSettings(change) {
