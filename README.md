@@ -2,67 +2,62 @@
 
 A Dynamic Island–style bar for Windows 10 and 11, inspired by NotchNook on the Mac.
 
-A small black pill sits at the top-center of your screen. Hover over it and it opens into a strip of widgets. Drag a file onto it and it becomes a drop zone.
+Nothing sits on your screen. Push your mouse to the **top-middle edge**: a small tab slides down. Rest there for a moment and it unfolds into a strip of widgets. Move away and it tucks itself back out of sight.
 
 ## What it does
 
-**Collapsed pill ("live activities")**
-- Album art and bouncing bars while music plays
-- A countdown while a timer runs
-- How many files are in the tray
-- A short notice when you plug in or unplug the charger, or when a timer ends
+**Nook**: widgets you can scroll through sideways
+- **Music**: artwork, title, play/pause/skip and a seek bar. Works with Spotify, browsers, Media Player, and anything else that appears in the Windows volume flyout.
+- **Mirror**: click the circle to see your webcam, for a quick check before a call.
+- **Calendar**: this month's days. Type a plan such as `14:30 Gym` and WindowsBar reminds you when it's time.
+- **Notes**: three pages (◆ ▲ ●) with color, size, bold, italic and underline.
+- **Timers**: scroll the hour, minute and second wheels, or tap 1m / 5m. You can run several at once.
+- **Tasks**: type a task and press Enter. Tap the circle when it's done.
 
-**Nook tab** (scroll sideways with the mouse wheel)
-- **Music**: artwork, title, artist, previous / play-pause / next, and a seek bar you can drag. Works with Spotify, browsers, Media Player, and anything else that appears in the Windows volume flyout.
-- **Mirror**: click the circle to see your webcam, for a quick check before a call. Click again to turn it off. It also turns off when the island closes.
-- **Calendar**: this month's days in a scrollable strip. Click a day to see its events.
-- **Notes**: three note pages (◆ ▲ ●) with color, size, bold, italic and underline. Saved as you type.
-- **Timers**: scroll the hour, minute and second wheels and press play, or use the 1m / 5m buttons. You can run several timers at once.
-- **Tasks**: type a task and press Enter. Click the circle to tick it off.
+**Tray**
+- Drop files on the island to keep them handy, and drag them back out into any folder or app later. Double-click a file to open it.
+- While you drag a file to the top of the screen, the island offers **Files Tray** and **Nearby Share**. Nearby Share opens the Windows share sheet, which is the Windows equivalent of AirDrop.
 
-**Tray tab**
-- Drop files on the island to keep them handy, and drag them out into any folder or app later. Double-click a file to open it.
-- While you drag a file over the island, it shows two targets: **Files Tray** and **Nearby Share**. Nearby Share opens the Windows share sheet and is the Windows equivalent of AirDrop.
+**The small tab** shows what's going on: a running timer, the song playing, or how many files are in the tray. When a timer finishes or a plan comes up, it drops down with a short chime.
 
-**Settings** (gear icon, or the WindowsBar icon next to the clock)
-- Start with Windows
-- Hide when an app is fullscreen (games, videos, presentations)
-- Quit
+**Settings** (gear icon)
+- Start with Windows (on by default)
+- Stay away while an app is fullscreen (games, videos, slideshows)
+- How long to rest at the top before it opens
+- Which widgets appear in Nook
+
+**Other ways to open it**: click the WindowsBar icon next to the clock, or press **Ctrl + Alt + Space**.
 
 ## Install
 
 1. Open the **Actions** tab of this repository and click the latest green **Build** run.
-2. Under **Artifacts**, download **WindowsBar-win-x64** and unzip it.
-3. Double-click `WindowsBar.exe`. Nothing else needs to be installed.
+2. Under **Artifacts**, download **WindowsBar-Setup** and unzip it.
+3. Run `WindowsBar-Setup-….exe`. It installs, adds Start menu and desktop shortcuts, and starts WindowsBar.
+
+Prefer not to install? Download **WindowsBar-Portable** instead and run it directly.
 
 Windows may show a blue "Windows protected your PC" screen because the app isn't code-signed. Click **More info**, then **Run anyway**.
 
+To uninstall: Settings → Apps → Installed apps → WindowsBar → Uninstall.
+
 ## Good to know
 
-- **Mirror shows "No camera"**: go to Settings → Privacy & security → Camera and turn on *Let desktop apps access your camera*.
-- **Calendar events**: Windows only lets packaged Store apps read your calendar. Until WindowsBar is packaged, the calendar shows dates but may say "Nothing for today".
-- Notes, tasks, tray files and settings are stored in `%AppData%\WindowsBar`. A `log.txt` there records any errors.
-
-## Build it yourself
-
-You need the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
-
-```
-dotnet run --project src/WindowsBar
-```
-
-To make a single `.exe`:
-
-```
-dotnet publish src/WindowsBar/WindowsBar.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
-```
+- **Mirror says "No camera"**: go to Settings → Privacy & security → Camera and turn on *Let desktop apps access your camera*.
+- Your notes, tasks, plans and tray are saved in `%AppData%\WindowsBar`. Settings → Data folder opens it.
 
 ## How it's built
 
-C# with WPF on .NET 8. The Windows features come from:
-- **Music**: Windows media session API (`GlobalSystemMediaTransportControlsSessionManager`)
-- **Mirror**: `MediaCapture` frame reader
-- **Nearby Share**: the Windows share sheet (`DataTransferManager`)
-- **Always on top, hidden from Alt+Tab, fullscreen detection**: a few Win32 calls in `Services/Native.cs`
+- `app/`: an [Electron](https://www.electronjs.org/) app. The island is plain HTML, CSS and JavaScript, drawn by Chromium on the graphics card. Motion uses real spring physics (`renderer/js/motion.js`).
+- `helper/`: a small .NET Framework 4.8 program (already part of Windows 10 and 11) for the things only Windows can do: media controls, the share sheet and fullscreen detection. The app talks to it in JSON over stdin/stdout.
 
-The code lives in `src/WindowsBar`: `NotchWindow` is the island, `Widgets/` holds each widget, and `Services/` holds the logic behind them.
+### Working on it
+
+```
+dotnet build helper -c Release     # the helper (Windows)
+cd app
+npm install
+npm start                          # run the app
+npm run dist                       # build the installer and portable exe
+```
+
+To work on the design in any browser, serve `app/renderer` (for example `python -m http.server`) and open it. A stand-in fakes the app: move the mouse to the top-middle edge, and a pretend song plays.

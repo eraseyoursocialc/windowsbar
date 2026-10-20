@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:">
+  <title>WindowsBar</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div id="island" data-mode="hidden">
+
+    <!-- The small tab: peeking out, or showing a short notice -->
+    <div id="tab" class="layer bare">
+      <span class="tab-left"></span>
+      <span class="tab-mid"></span>
+      <span class="tab-right"></span>
+      <span class="grab"></span>
+    </div>
+
+    <!-- Fully open -->
+    <div id="open" class="layer">
+      <header class="bar-head">
+        <div class="seg" role="tablist">
+          <span class="seg-indicator"></span>
+          <button class="seg-btn active" data-tab="nook"><i data-icon="grid" data-size="13"></i><span>Nook</span></button>
+          <button class="seg-btn" data-tab="tray"><i data-icon="tray" data-size="13"></i><span>Tray</span></button>
+        </div>
+        <div class="head-right">
+          <button id="clear-tray" class="chip quiet" hidden><i data-icon="trash" data-size="12"></i><span>Clear</span></button>
+          <span id="battery"></span>
+          <button id="gear" class="btn ghost" title="Settings"><i data-icon="gear" data-size="16"></i></button>
+        </div>
+      </header>
+
+      <div class="pages">
+        <section class="page active" data-page="nook">
+          <div id="strip" class="strip">
+            <div class="w w-media" id="w-media" data-widget="media"></div>
+            <div class="w w-mirror" id="w-mirror" data-widget="mirror"></div>
+            <div class="w w-calendar" id="w-calendar" data-widget="calendar"></div>
+            <div class="w w-notes" id="w-notes" data-widget="notes"></div>
+            <div class="w w-timers" id="w-timers" data-widget="timers"></div>
+            <div class="w w-tasks" id="w-tasks" data-widget="tasks"></div>
+          </div>
+        </section>
+
+        <section class="page" data-page="tray">
+          <div id="shelf" class="shelf empty"></div>
+        </section>
+
+        <section class="page" data-page="settings">
+          <div class="settings">
+            <div class="card set-card">
+              <label class="toggle-row">
+                <span><b>Start with Windows</b><small>Ready as soon as you sign in</small></span>
+                <input type="checkbox" id="set-login" class="switch">
+              </label>
+              <label class="toggle-row">
+                <span><b>Stay away in fullscreen</b><small>Games, videos and slideshows</small></span>
+                <input type="checkbox" id="set-fullscreen" class="switch">
+              </label>
+            </div>
+
+            <div class="card set-card">
+              <div class="range-row">
+                <span><b>Open after</b><small>How long to rest at the top</small></span>
+                <span id="set-delay-label" class="range-value"></span>
+              </div>
+              <input type="range" id="set-delay" class="slider" min="200" max="1500" step="100">
+              <div class="shortcut-row"><i data-icon="keyboard" data-size="13"></i><span>Shortcut</span><kbd id="set-shortcut"></kbd></div>
+            </div>
+
+            <div class="card set-card">
+              <div class="set-label"><b>Widgets</b><small>Choose what shows in Nook</small></div>
+              <div class="widget-chips">
+                <button class="wchip" data-widget="media"><i data-icon="music" data-size="12"></i>Music</button>
+                <button class="wchip" data-widget="mirror"><i data-icon="camera" data-size="12"></i>Mirror</button>
+                <button class="wchip" data-widget="calendar"><i data-icon="calendar" data-size="12"></i>Calendar</button>
+                <button class="wchip" data-widget="notes"><i data-icon="file" data-size="12"></i>Notes</button>
+                <button class="wchip" data-widget="timers"><i data-icon="timer" data-size="12"></i>Timers</button>
+                <button class="wchip" data-widget="tasks"><i data-icon="check" data-size="12"></i>Tasks</button>
+              </div>
+            </div>
+
+            <div class="set-actions">
+              <button id="set-folder" class="chip big"><i data-icon="folder" data-size="13"></i><span>Data folder</span></button>
+              <button id="set-quit" class="chip big danger"><i data-icon="power" data-size="13"></i><span>Quit</span></button>
+              <span id="set-version" class="version"></span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- While a file is dragged onto the island -->
+    <div id="drop" class="layer">
+      <div id="tray-zone" class="zone">
+        <i data-icon="tray" data-size="22"></i>
+        <b>Files Tray</b>
+        <small id="drop-count"></small>
+      </div>
+      <div id="share-zone" class="zone share">
+        <i data-icon="share" data-size="22"></i>
+        <b>Nearby Share</b>
+        <small>Send to a nearby PC or your phone</small>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{
+  "name": "windowsbar",
+  "productName": "WindowsBar",
+  "version": "0.2.0",
+  "description": "A Dynamic Island-style bar for Windows",
+  "main": "main.js",
+  "author": "WindowsBar",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "app.windowsbar",
+    "productName": "WindowsBar",
+    "copyright": "WindowsBar",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**",
+      "renderer/**",
+      "assets/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../helper/bin/Release/net48/",
+        "to": "helper",
+        "filter": ["*.exe", "*.dll", "*.config"]
+      }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "WindowsBar",
+      "runAfterFinish": true,
+      "artifactName": "WindowsBar-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "WindowsBar-Portable-${version}.exe"
+    }
+  }
+}

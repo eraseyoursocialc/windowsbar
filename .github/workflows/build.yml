@@ -20,55 +20,63 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Build a single WindowsBar.exe
-        run: >
-          dotnet publish src/WindowsBar/WindowsBar.csproj
-          -c Release -r win-x64 --self-contained true
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:EnableCompressionInSingleFile=true
-          -o publish
+      - name: Build the Windows helper
+        run: dotnet build helper/WindowsBar.Helper.csproj -c Release
 
-      # Launch the real exe, make sure it stays up without errors, and take screenshots.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install
+        working-directory: app
+        run: npm ci
+
+      - name: Build the installer and portable app
+        working-directory: app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder --win --x64 --publish never
+
+      # Launch the real app, make sure it and its helper stay up without errors, and take screenshots.
       - name: Smoke test
         shell: pwsh
         run: |
           Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $exe = "app/dist/win-unpacked/WindowsBar.exe"
+          $log = "$env:APPDATA\WindowsBar\log.txt"
+          New-Item -ItemType Directory -Force screenshots | Out-Null
+
           function Snap($name) {
             $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
             $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
             $g = [System.Drawing.Graphics]::FromImage($bmp)
             $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
-            New-Item -ItemType Directory -Force screenshots | Out-Null
             $bmp.Save("screenshots/$name.png")
             $g.Dispose(); $bmp.Dispose()
           }
-          function Check($p, $label) {
-            $log = "$env:APPDATA\WindowsBar\log.txt"
-            if (Test-Path $log) { Write-Host "--- log.txt ---"; Get-Content $log }
-            if ($p.HasExited) { throw "WindowsBar exited during '$label' with code $($p.ExitCode)" }
-            if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'Could not start|Unhandled|Fatal' -Quiet)) {
-              throw "WindowsBar logged an error during '$label'"
-            }
-          }
-
-          # Hidden by default: nothing should be on screen.
-          $p = Start-Process publish/WindowsBar.exe -PassThru
-          Start-Sleep -Seconds 12
-          Snap "1-hidden"
-          Check $p "hidden"
-          Stop-Process -Id $p.Id -Force
-          Start-Sleep -Seconds 2
-
-          foreach ($state in 'peek', 'open', 'settings') {
-            $p = Start-Process publish/WindowsBar.exe -ArgumentList "--$state" -PassThru
-            Start-Sleep -Seconds 12
-            Snap "2-$state"
-            Check $p $state
-            Stop-Process -Id $p.Id -Force
+          function StopAll {
+            Get-Process WindowsBar* -ErrorAction SilentlyContinue | Stop-Process -Force
             Start-Sleep -Seconds 2
           }
-          Write-Host "WindowsBar started and stayed up."
+
+          foreach ($state in '', 'peek', 'open', 'settings') {
+            $p = if ($state) { Start-Process $exe -ArgumentList "--$state" -PassThru } else { Start-Process $exe -PassThru }
+            Start-Sleep -Seconds 12
+            $name = if ($state) { $state } else { 'hidden' }
+            Snap $name
+            if ($p.HasExited) { throw "WindowsBar exited during '$name' with code $($p.ExitCode)" }
+            if (-not (Get-Process WindowsBar.Helper -ErrorAction SilentlyContinue)) { throw "The helper isn't running during '$name'" }
+            StopAll
+          }
+
+          if (Test-Path $log) {
+            Write-Host "--- log.txt ---"
+            Get-Content $log
+            throw "WindowsBar logged errors"
+          }
+          Write-Host "WindowsBar and its helper started, stayed up and logged nothing."
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -78,11 +86,18 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: WindowsBar-win-x64
-          path: publish/WindowsBar.exe
+          name: WindowsBar-Setup
+          path: app/dist/WindowsBar-Setup-*.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WindowsBar-Portable
+          path: app/dist/WindowsBar-Portable-*.exe
 
       - name: Attach to GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: publish/WindowsBar.exe
+          files: |
+            app/dist/WindowsBar-Setup-*.exe
+            app/dist/WindowsBar-Portable-*.exe
