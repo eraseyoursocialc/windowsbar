@@ -75,7 +75,6 @@ button:focus-visible, input:focus-visible {
   border-radius: 0 0 12px 12px;
   /* --glass is 1 for solid black; the Transparency slider in Settings lowers it. */
   background: rgba(0, 0, 0, var(--glass, 1));
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   opacity: 0;
   contain: layout paint;
 }
