@@ -1,6 +1,6 @@
 import { icon } from '../icons.js';
 
-const PAGES = ['◆', '▲', '●'];
+const PAGE_COUNT = 3;
 const COLORS = ['#ffffff', '#4aa8ff', '#ffd60a', '#ff6482', '#30d158'];
 const SIZES = ['3', '4', '5']; // execCommand fontSize steps: normal, large, larger
 
@@ -8,7 +8,7 @@ const SIZES = ['3', '4', '5']; // execCommand fontSize steps: normal, large, lar
 export class NotesWidget {
   constructor(root, bridge, pages) {
     this.bridge = bridge;
-    this.pages = pages.length === 3 ? pages.map(sanitize) : ['', '', ''];
+    this.pages = pages.length === PAGE_COUNT ? pages.map(sanitize) : Array(PAGE_COUNT).fill('');
     this.page = 0;
     this.color = 1;
     this.size = 0;
@@ -27,7 +27,7 @@ export class NotesWidget {
         </div>
       </div>
       <div class="note-pages">
-        ${PAGES.map((p, i) => `<button class="btn ghost tiny page-dot" data-page="${i}" title="Note ${i + 1}">${p}</button>`).join('')}
+        ${Array.from({ length: PAGE_COUNT }, (_, i) => `<button class="btn ghost tiny page-dot" data-page="${i}" title="Note ${i + 1}"></button>`).join('')}
       </div>`;
 
     this.editor = root.querySelector('.notes-editor');

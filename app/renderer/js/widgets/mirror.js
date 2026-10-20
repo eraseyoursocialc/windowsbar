@@ -6,7 +6,7 @@ export class MirrorWidget {
     el.innerHTML = `
       <button class="mirror" title="Mirror: a quick look at your webcam">
         <video muted playsinline></video>
-        <span class="mirror-label">${icon('camera', 20)}<span class="mirror-text">Mirror</span></span>
+        <span class="mirror-label"><span class="mirror-ring">${icon('camera', 20)}</span><span class="mirror-text">Mirror</span></span>
       </button>`;
     this.button = el.querySelector('.mirror');
     this.video = el.querySelector('video');

@@ -55,6 +55,7 @@ export class MediaWidget {
       this.art = data;
       this.img.src = data || '';
       el.classList.toggle('has-art', !!data);
+      setTint(data);
       this.onChange();
     });
   }
@@ -110,4 +111,56 @@ export class MediaWidget {
     const pct = this.seek.max > 0 ? (this.seek.value / this.seek.max) * 100 : 0;
     this.seek.style.setProperty('--p', `${pct}%`);
   }
+}
+
+/**
+ * Picks the most colorful tone in the artwork and publishes it as --tint, so the music tile and the
+ * little equalizer in the tab take on the song's color. Kept bright enough to read on black.
+ */
+function setTint(src) {
+  const root = document.documentElement;
+  if (!src) {
+    root.style.removeProperty('--tint');
+    return;
+  }
+  const img = new Image();
+  img.onload = () => {
+    try {
+      const size = 16;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, size, size);
+      const px = ctx.getImageData(0, 0, size, size).data;
+      let r = 0, g = 0, b = 0, total = 0;
+      for (let i = 0; i < px.length; i += 4) {
+        const max = Math.max(px[i], px[i + 1], px[i + 2]);
+        const min = Math.min(px[i], px[i + 1], px[i + 2]);
+        // Favour saturated, mid-bright pixels over greys, blacks and whites.
+        const weight = ((max - min) / 255) ** 2 * (max / 255) + 0.002;
+        r += px[i] * weight;
+        g += px[i + 1] * weight;
+        b += px[i + 2] * weight;
+        total += weight;
+      }
+      const [h, s] = toHsl(r / total, g / total, b / total);
+      root.style.setProperty('--tint', `hsl(${Math.round(h)} ${Math.round(Math.min(s, 0.8) * 100)}% 68%)`);
+    } catch {
+      root.style.removeProperty('--tint');
+    }
+  };
+  img.src = src;
+}
+
+function toHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (!d)
+    return [0, 0, l];
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, s, l];
 }

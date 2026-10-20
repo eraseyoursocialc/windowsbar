@@ -251,7 +251,8 @@ function openSize() {
   let w = Math.min(1180, window.innerWidth - 40);
   w -= w % 2;
   island.style.setProperty('--open-w', `${w}px`);
-  return { w, h: 210, r: 36 };
+  // 36 = the tiles' 22px corners plus the 14px gap around them, so the curves run parallel.
+  return { w, h: 216, r: 36 };
 }
 
 function setMode(mode) {
