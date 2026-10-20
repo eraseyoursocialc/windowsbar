@@ -52,18 +52,22 @@ jobs:
             }
           }
 
+          # Hidden by default: nothing should be on screen.
           $p = Start-Process publish/WindowsBar.exe -PassThru
-          Start-Sleep -Seconds 15
-          Snap "collapsed"
-          Check $p "collapsed"
+          Start-Sleep -Seconds 12
+          Snap "1-hidden"
+          Check $p "hidden"
           Stop-Process -Id $p.Id -Force
           Start-Sleep -Seconds 2
 
-          $p = Start-Process publish/WindowsBar.exe -ArgumentList '--open' -PassThru
-          Start-Sleep -Seconds 15
-          Snap "expanded"
-          Check $p "expanded"
-          Stop-Process -Id $p.Id -Force
+          foreach ($state in 'peek', 'open', 'settings') {
+            $p = Start-Process publish/WindowsBar.exe -ArgumentList "--$state" -PassThru
+            Start-Sleep -Seconds 12
+            Snap "2-$state"
+            Check $p $state
+            Stop-Process -Id $p.Id -Force
+            Start-Sleep -Seconds 2
+          }
           Write-Host "WindowsBar started and stayed up."
 
       - uses: actions/upload-artifact@v4

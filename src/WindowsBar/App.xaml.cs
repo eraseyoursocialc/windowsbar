@@ -33,7 +33,8 @@ namespace WindowsBar
             try
             {
                 var settings = Settings.Load();
-                _window = new NotchWindow(settings, openOnStart: e.Args.Contains("--open"));
+                var startState = e.Args.FirstOrDefault(a => a is "--open" or "--peek" or "--settings")?.TrimStart('-');
+                _window = new NotchWindow(settings, startState);
                 _window.Show();
                 _trayIcon = new TrayIcon(settings);
                 _started = true;

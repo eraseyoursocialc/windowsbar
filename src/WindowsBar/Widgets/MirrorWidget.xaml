@@ -13,15 +13,19 @@
                     <TextBlock x:Name="PlaceholderText" Text="Mirror" FontSize="11" Margin="0,4,0,0"
                                HorizontalAlignment="Center" Foreground="{StaticResource SubtleBrush}" />
                 </StackPanel>
-                <!-- Flipped so it behaves like a real mirror. -->
-                <Image x:Name="Preview" Stretch="UniformToFill" RenderTransformOrigin="0.5,0.5">
-                    <Image.RenderTransform>
-                        <ScaleTransform ScaleX="-1" />
-                    </Image.RenderTransform>
-                    <Image.Clip>
-                        <EllipseGeometry Center="50,50" RadiusX="50" RadiusY="50" />
-                    </Image.Clip>
-                </Image>
+                <!-- Painted straight into the circle so it always lines up; flipped like a real mirror. -->
+                <Ellipse x:Name="Lens" Width="100" Height="100" Visibility="Collapsed">
+                    <Ellipse.Fill>
+                        <ImageBrush x:Name="PreviewBrush" Stretch="UniformToFill"
+                                    AlignmentX="Center" AlignmentY="Center">
+                            <ImageBrush.RelativeTransform>
+                                <ScaleTransform ScaleX="-1" CenterX="0.5" CenterY="0.5" />
+                            </ImageBrush.RelativeTransform>
+                        </ImageBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+                <!-- Soft inner rim on top of the video. -->
+                <Ellipse Width="100" Height="100" StrokeThickness="1" Stroke="#30FFFFFF" IsHitTestVisible="False" />
             </Grid>
         </Border>
     </Grid>

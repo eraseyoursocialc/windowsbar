@@ -17,7 +17,11 @@ namespace WindowsBar.Widgets
         public void Attach(CameraService camera)
         {
             _camera = camera;
-            _camera.FrameReady += frame => Preview.Source = frame;
+            _camera.FrameReady += frame =>
+            {
+                PreviewBrush.ImageSource = frame;
+                Lens.Visibility = System.Windows.Visibility.Visible;
+            };
         }
 
         private async void Circle_Click(object sender, MouseButtonEventArgs e)
@@ -52,7 +56,8 @@ namespace WindowsBar.Widgets
             if (_camera == null || !_camera.IsRunning)
                 return;
             await _camera.StopAsync();
-            Preview.Source = null;
+            Lens.Visibility = System.Windows.Visibility.Collapsed;
+            PreviewBrush.ImageSource = null;
         }
     }
 }

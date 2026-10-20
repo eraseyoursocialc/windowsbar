@@ -12,6 +12,26 @@
         <SolidColorBrush x:Key="DividerBrush" Color="#1FFFFFFF" />
         <SolidColorBrush x:Key="AccentBrush" Color="#FF0A84FF" />
 
+        <!-- Easing used across the island: soft settle, and a gentle overshoot. -->
+        <CubicEase x:Key="SoftOut" EasingMode="EaseOut" />
+        <BackEase x:Key="Springy" EasingMode="EaseOut" Amplitude="0.35" />
+
+        <!-- The island's dark glass: a deep gradient, a faint light rim and a sheen from above. -->
+        <LinearGradientBrush x:Key="GlassBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#F7141418" Offset="0" />
+            <GradientStop Color="#F50A0A0D" Offset="1" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="RimBrush" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#00FFFFFF" Offset="0" />
+            <GradientStop Color="#14FFFFFF" Offset="0.5" />
+            <GradientStop Color="#38FFFFFF" Offset="1" />
+        </LinearGradientBrush>
+        <RadialGradientBrush x:Key="SheenBrush" Center="0.5,0" GradientOrigin="0.5,0" RadiusX="0.65" RadiusY="1">
+            <GradientStop Color="#18FFFFFF" Offset="0" />
+            <GradientStop Color="#00FFFFFF" Offset="1" />
+        </RadialGradientBrush>
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#12FFFFFF" />
+
         <!-- Round, borderless button used for every icon in the island. -->
         <Style x:Key="IconButton" TargetType="Button">
             <Setter Property="Foreground" Value="White" />
@@ -27,7 +47,10 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Grid>
+                        <Grid x:Name="Root" Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
                             <Border Background="{TemplateBinding Background}"
                                     CornerRadius="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
                             <!-- Light wash on hover, works for clear and filled buttons alike. -->
@@ -37,11 +60,54 @@
                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Grid>
                         <ControlTemplate.Triggers>
+                            <!-- Buttons swell slightly under the mouse and squish when pressed. -->
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Hover" Property="Opacity" Value="1" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="0:0:0.16" />
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                                             To="1.07" Duration="0:0:0.22" EasingFunction="{StaticResource SoftOut}" />
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                                             To="1.07" Duration="0:0:0.22" EasingFunction="{StaticResource SoftOut}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="0:0:0.22" />
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                                             To="1" Duration="0:0:0.26" EasingFunction="{StaticResource SoftOut}" />
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                                             To="1" Duration="0:0:0.26" EasingFunction="{StaticResource SoftOut}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Hover" Property="Background" Value="#40FFFFFF" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                                             To="0.92" Duration="0:0:0.08" />
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                                             To="0.92" Duration="0:0:0.08" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                                             To="1.07" Duration="0:0:0.3" EasingFunction="{StaticResource Springy}" />
+                                            <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                                             To="1.07" Duration="0:0:0.3" EasingFunction="{StaticResource Springy}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.35" />
@@ -146,11 +212,69 @@
             <Setter Property="Visibility" Value="Collapsed" />
         </Style>
 
-        <!-- Thin vertical line between widgets. -->
+        <!-- Thin vertical line between widgets that fades out at both ends. -->
         <Style x:Key="WidgetDivider" TargetType="Border">
             <Setter Property="Width" Value="1" />
-            <Setter Property="Margin" Value="14,10" />
-            <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+            <Setter Property="Margin" Value="16,6" />
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#00FFFFFF" Offset="0" />
+                        <GradientStop Color="#26FFFFFF" Offset="0.5" />
+                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- iOS-style on/off switch with a sliding knob. -->
+        <Style x:Key="ToggleSwitch" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter VerticalAlignment="Center" Margin="0,0,14,0" />
+                            <Border x:Name="Track" Grid.Column="1" Width="42" Height="24" CornerRadius="12"
+                                    Background="#33FFFFFF">
+                                <Ellipse x:Name="Knob" Width="20" Height="20" Fill="White"
+                                         HorizontalAlignment="Left" Margin="2,0,0,0">
+                                    <Ellipse.RenderTransform>
+                                        <TranslateTransform X="0" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="{StaticResource AccentBrush}" />
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="RenderTransform.X"
+                                                             To="18" Duration="0:0:0.25" EasingFunction="{StaticResource Springy}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="RenderTransform.X"
+                                                             To="0" Duration="0:0:0.25" EasingFunction="{StaticResource Springy}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Application.Resources>
 </Application>
